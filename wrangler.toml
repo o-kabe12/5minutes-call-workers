@@ -1,0 +1,31 @@
+name = "5minutes-call"
+compatibility_date = "2023-12-01"
+
+# Workers用の設定
+[workers_dev]
+enabled = true
+
+# Durable Objectsの設定
+[durable_objects]
+bindings = [
+  { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["RoomSignaling"]
+
+# シグナリングサーバーの設定
+[env.production.durable_objects]
+bindings = [
+  { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
+]
+
+# Pages用の設定
+[site]
+bucket = "./out"
+entry-point = "workers/signaling.js"
+
+[build]
+command = "npm run build"
+output_dir = "out" 
