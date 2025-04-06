@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -44,47 +45,46 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 text-center">
-      <h1 className="text-4xl font-bold mb-8">５分通話</h1>
-      <p className="mb-8 text-lg">
-        1日1回、パスコードを使って5分間だけ会話できるアプリです。
-      </p>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 p-6">
+      <div className="w-full max-w-md">
+        <h1 className="text-center text-4xl font-bold mb-12 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-500 tracking-tight">５分通話</h1>
 
-      <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
-        <div className="mb-6">
-          <label htmlFor="passcode" className="block text-left text-sm font-medium mb-2">
-            パスコード（6桁の数字）
-          </label>
-          <input
-            type="text"
-            id="passcode"
-            maxLength={6}
-            className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={passcode}
-            onChange={(e) => {
-              setPasscode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6));
-              setError('');
-            }}
-            placeholder="例: 12356"
-          />
-          {error && <p className="mt-2 text-red-600 text-sm">{error}</p>}
-        </div>
+        <div className="bg-gray-800 rounded-2xl shadow-xl p-6 border border-gray-700">
+          <div className="mb-6">
+            <label htmlFor="passcode" className="block text-left text-sm font-medium text-gray-300 mb-2">
+              パスコード（6桁の数字）
+            </label>
+            <input
+              type="text"
+              id="passcode"
+              maxLength={6}
+              className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-white placeholder-gray-400"
+              value={passcode}
+              onChange={(e) => {
+                setPasscode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6));
+                setError('');
+              }}
+              placeholder="例: 123456"
+            />
+            {error && <p className="mt-2 text-red-600 text-xs font-medium">{error}</p>}
+          </div>
 
-        <div className="flex flex-col space-y-4">
-          <button
-            onClick={handleCreateRoom}
-            className="bg-blue-600 text-white py-3 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          >
-            ルームを作成する
-          </button>
-          <button
-            onClick={handleEnterRoom}
-            className="bg-gray-200 text-gray-800 py-3 px-6 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
-          >
-            ルームに入室する
-          </button>
+          <div className="flex flex-col space-y-3">
+            <button
+              onClick={handleCreateRoom}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-lg hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-200 font-medium"
+            >
+              ルームを作成する
+            </button>
+            <button
+              onClick={handleEnterRoom}
+              className="bg-gray-700 text-gray-300 py-3 px-4 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-800 transition-all duration-200 font-medium"
+            >
+              ルームに入室する
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-} 
+}
