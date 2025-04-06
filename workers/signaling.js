@@ -122,7 +122,7 @@ export default {
         // パスコード（ルームID）の取得
         const roomId = url.pathname.split('/').pop();
         
-        if (!roomId || !/^\d{4}$/.test(roomId)) {
+        if (!roomId || !/^\d{6}$/.test(roomId)) {
           return new Response('Invalid room ID. It must be a 4-digit number.', { status: 400 });
         }
         

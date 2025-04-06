@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isCreatedToday } from '@/lib/utils';
+// import { isCreatedToday } from '@/lib/utils';
 
 export default function Home() {
   const [passcode, setPasscode] = useState('');
@@ -10,17 +10,17 @@ export default function Home() {
   const router = useRouter();
 
   const handleCreateRoom = () => {
-    // パスコードの検証：4桁の数字であることをチェック
-    if (!/^\d{4}$/.test(passcode)) {
-      setError('パスコードは4桁の数字を入力してください');
+    // パスコードの検証：6桁の数字であることをチェック
+    if (!/^\d{6}$/.test(passcode)) {
+      setError('パスコードは6桁の数字を入力してください');
       return;
     }
 
-    // 既に今日ルームを作成済みかチェック
-    if (isCreatedToday()) {
-      setError('既に今日はルームを作成済みです。明日また利用してください。');
-      return;
-    }
+    // // 既に今日ルームを作成済みかチェック
+    // if (isCreatedToday()) {
+    //   setError('既に今日はルームを作成済みです。明日また利用してください。');
+    //   return;
+    // }
 
     // ルーム作成の記録
     localStorage.setItem('lastCreatedRoom', JSON.stringify({
@@ -33,9 +33,9 @@ export default function Home() {
   };
 
   const handleEnterRoom = () => {
-    // パスコードの検証：4桁の数字であることをチェック
-    if (!/^\d{4}$/.test(passcode)) {
-      setError('パスコードは4桁の数字を入力してください');
+    // パスコードの検証：6桁の数字であることをチェック
+    if (!/^\d{6}$/.test(passcode)) {
+      setError('パスコードは6桁の数字を入力してください');
       return;
     }
 
@@ -53,19 +53,19 @@ export default function Home() {
       <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-md">
         <div className="mb-6">
           <label htmlFor="passcode" className="block text-left text-sm font-medium mb-2">
-            パスコード（4桁の数字）
+            パスコード（6桁の数字）
           </label>
           <input
             type="text"
             id="passcode"
-            maxLength={4}
+            maxLength={6}
             className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={passcode}
             onChange={(e) => {
-              setPasscode(e.target.value.replace(/[^0-9]/g, '').slice(0, 4));
+              setPasscode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6));
               setError('');
             }}
-            placeholder="例: 1234"
+            placeholder="例: 12356"
           />
           {error && <p className="mt-2 text-red-600 text-sm">{error}</p>}
         </div>
