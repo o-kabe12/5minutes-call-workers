@@ -21,11 +21,6 @@ bindings = [
   { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
 ]
 
-# Pages用の設定
-[site]
-bucket = "./out"
-entry-point = "workers/signaling.js"
 
 [build]
 command = "npm run build"
-output_dir = "out" 
