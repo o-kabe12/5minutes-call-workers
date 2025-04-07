@@ -15,6 +15,32 @@ export class RoomSignaling {
     this.messageQueue = [];
   }
 
+  // 追加: Durable ObjectのfetchハンドラーでWebSocketを処理
+  async fetch(request) {
+    // WebSocketのハンドリング
+    const upgradeHeader = request.headers.get('Upgrade');
+    if (!upgradeHeader || upgradeHeader !== 'websocket') {
+      return new Response('Expected WebSocket', { status: 400 });
+    }
+
+    // カスタムヘッダーからWebSocketを取得
+    const websocket = request.headers.get('X-Custom-WebSocket');
+    if (!websocket) {
+      return new Response('Missing WebSocket', { status: 400 });
+    }
+
+    // URLからルームIDを抽出
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split('/');
+    // /room/123456/ という形式の場合、適切な部分を取得
+    const roomId = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
+
+    // WebSocketセッションの処理
+    this.handleSession(websocket, roomId);
+
+    return new Response(null, { status: 101, webSocket: websocket });
+  }
+
   // WebSocketセッションの追加
   handleSession(websocket, roomId) {
     // セッションをマップに追加
@@ -119,11 +145,12 @@ export default {
       
       // WebSocketリクエストの処理
       if (request.headers.get('Upgrade') === 'websocket') {
-        // パスコード（ルームID）の取得
-        const roomId = url.pathname.split('/').pop();
+        // パスコード（ルームID）の取得 - URLパス構造に合わせて修正
+        const pathParts = url.pathname.split('/');
+        const roomId = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
         
         if (!roomId || !/^\d{6}$/.test(roomId)) {
-          return new Response('Invalid room ID. It must be a 4-digit number.', { status: 400 });
+          return new Response('Invalid room ID. It must be a 6-digit number.', { status: 400 });
         }
         
         // WebSocketサーバーの作成
@@ -158,4 +185,4 @@ export default {
       return new Response('Internal Server Error', { status: 500 });
     }
   }
-}; 
+};

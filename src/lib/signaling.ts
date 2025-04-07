@@ -1,13 +1,12 @@
-// src/lib/webrtc.ts より抜粋
-
 export function connectToSignalingServer(passcode: string): {
   socket: WebSocket;
   send: (message: any) => void;
   onMessage: (handler: (message: any) => void) => void;
 } {
-  const socket = new WebSocket(`wss://5minutes-call.koo710128.workers.dev/${passcode}`);
+  const socket = new WebSocket(`wss://5minutes-call.koo710128.workers.dev/room/${passcode}`);
 
   const listeners: ((msg: any) => void)[] = [];
+  console.log('WebSocket状態:', socket.readyState);
 
   socket.addEventListener('message', (event) => {
     try {
@@ -27,7 +26,7 @@ export function connectToSignalingServer(passcode: string): {
   });
 
   socket.addEventListener('error', (err) => {
-    console.error('❌ WebSocketエラー:', err);
+    console.error('❌ WebSocketエラー:', err, err.target);
   });
 
   const send = (message: any) => {
