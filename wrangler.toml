@@ -1,5 +1,5 @@
 name = "5minutes-call"
-main = "src/index.ts" # ← ここは実際のエントリーポイントに合わせてください
+main = "src/workers/signaling.js" # ← ここは実際のエントリーポイントに合わせてください
 compatibility_date = "2023-12-01"
 
 # Workers開発用設定
