@@ -1,11 +1,9 @@
 name = "5minutes-call"
-main = "src/workers/signaling.js" # ← ここは実際のエントリーポイントに合わせてください
+main = "workers/signaling.js"
 compatibility_date = "2023-12-01"
 
-# Workers開発用設定
 workers_dev = true
 
-# Durable Objectsの設定
 [durable_objects]
 bindings = [
   { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
@@ -15,7 +13,6 @@ bindings = [
 tag = "v1"
 new_classes = ["RoomSignaling"]
 
-# 本番用環境の Durable Objects 設定
 [env.production.durable_objects]
 bindings = [
   { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
