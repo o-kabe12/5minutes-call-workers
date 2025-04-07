@@ -2,10 +2,11 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { formatTime } from '@/lib/utils';
+// import { formatTime } from '@/lib/utils';
 import CallTimer from '@/components/CallTimer';
 import CallControls from '@/components/CallControls';
 import { setupWebRTC, SignalingState } from '@/lib/webrtc';
+import { connectToSignalingServer } from '@/lib/signaling'; // 👈 追加
 
 export default function RoomPage() {
   const params = useParams();
@@ -13,7 +14,7 @@ export default function RoomPage() {
   const passcode = params.passcode as string;
   const [connected, setConnected] = useState(false);
   const [signalingState, setSignalingState] = useState<SignalingState>('waiting');
-  const [timeLeft, setTimeLeft] = useState(300); // 5分=300秒
+  const [timeLeft, setTimeLeft] = useState(300);
   const [showAlert, setShowAlert] = useState(false);
   const peerRef = useRef<any>(null);
   const timerId = useRef<NodeJS.Timeout | null>(null);
@@ -22,63 +23,56 @@ export default function RoomPage() {
   const localAudioRef = useRef<HTMLAudioElement | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  // WebRTC接続の初期化
   useEffect(() => {
     const setupCall = async () => {
       try {
-        const { peer, localStream, remoteStream, state } = await setupWebRTC(passcode);
-        
+        const { socket, send, onMessage } = connectToSignalingServer(passcode); // 👈 WebSocket取得
+
+        const { peer, localStream, remoteStream, state } = await setupWebRTC(passcode, {
+          send,
+          onMessage,
+        });
+
         peerRef.current = peer;
         localStreamRef.current = localStream;
         remoteStreamRef.current = remoteStream;
-        
+
         if (localAudioRef.current) {
           localAudioRef.current.srcObject = localStream;
         }
-        
+
         if (remoteAudioRef.current) {
           remoteAudioRef.current.srcObject = remoteStream;
         }
-        
+
         setSignalingState(state);
-        
-        // 接続状態の監視
-        if (peer) {
-          peer.on('connect', () => {
-            setConnected(true);
-            setSignalingState('connected');
-            // 接続完了後にタイマーを開始
-            startTimer();
-          });
-        }
-        
-        if (peer) {
-          peer.on('close', () => {
-            setConnected(false);
-            setSignalingState('disconnected');
-            cleanupCall();
-          });
-        }
-        
-        if (peer) {
-          peer.on('error', (err: any) => {
-            console.error('Peer error:', err);
-            setSignalingState('error');
-          });
-        }
-        
+
+        peer.on('connect', () => {
+          setConnected(true);
+          setSignalingState('connected');
+          startTimer();
+        });
+
+        peer.on('close', () => {
+          setConnected(false);
+          setSignalingState('disconnected');
+          cleanupCall();
+        });
+
+        peer.on('error', (err: any) => {
+          console.error('Peer error:', err);
+          setSignalingState('error');
+        });
       } catch (error) {
         console.error('Failed to setup WebRTC:', error);
         setSignalingState('error');
       }
     };
-    
+
     setupCall();
-    
-    return () => {
-      cleanupCall();
-    };
+    return () => cleanupCall();
   }, [passcode]);
+
 
   // タイマーの開始
   const startTimer = () => {
