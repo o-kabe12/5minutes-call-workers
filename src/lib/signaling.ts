@@ -5,7 +5,7 @@ export function connectToSignalingServer(passcode: string): {
   send: (message: any) => void;
   onMessage: (handler: (message: any) => void) => void;
 } {
-  const socket = new WebSocket(`wss://5minutes-call-signaling.workers.dev?room=${passcode}`);
+  const socket = new WebSocket(`wss://5minutes-call.koo710128.workers.dev/${passcode}`);
 
   const listeners: ((msg: any) => void)[] = [];
 
