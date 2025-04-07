@@ -20,7 +20,3 @@ new_classes = ["RoomSignaling"]
 bindings = [
   { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
 ]
-
-# ビルドコマンド（必要に応じて）
-[build]
-command = "npm run build"
