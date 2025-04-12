@@ -29,10 +29,10 @@ export function connectToSignalingServer(passcode: string): {
     try {
       console.error('Error details:', JSON.stringify({
         type: err.type,
-        message: err.message || '(no message)',
+        message: (err as ErrorEvent).message || '(no message)',
         target: err.target && {
-          url: err.target.url,
-          readyState: err.target.readyState,
+          url: (err.target as WebSocket).url,
+          readyState: (err.target as WebSocket).readyState,
         }
       }));
     } catch (e) {
