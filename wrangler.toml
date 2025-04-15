@@ -1,5 +1,5 @@
 name = "5minutes-call"
-main = "signaling.js"
+main = "workers/signaling.js"
 compatibility_date = "2024-04-15"
 workers_dev = true
 
