@@ -1,10 +1,6 @@
 name = "5minutes-call"
 main = "workers/signaling.js"
 compatibility_date = "2024-04-15"
-workers_dev = true
-
-[build]
-upload.format = "modules"
 
 [[durable_objects.bindings]]
 name = "ROOM_SIGNALING"
