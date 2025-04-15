@@ -3,42 +3,7 @@ export function connectToSignalingServer(passcode: string): {
   send: (message: any) => void;
   onMessage: (handler: (message: any) => void) => void;
 } {
-  // const socket = new WebSocket(`wss://5minutes-call.koo710128.workers.dev/room/${passcode}`);
-
-  //log確認
-  const wsUrl = `wss://5minutes-call.koo710128.workers.dev/room/${passcode}`;
-  console.log('🔌 接続先WebSocketURL:', wsUrl);
-
-  const socket = new WebSocket(wsUrl);
-
-  socket.addEventListener('open', () => {
-    console.log('✅ WebSocket接続が確立しました');
-  });
-
-  socket.addEventListener('close', (event) => {
-    console.log('🔌 WebSocket接続が切断されました', {
-      code: event.code,
-      reason: event.reason,
-      wasClean: event.wasClean
-    });
-  });
-
-  socket.addEventListener('error', (err) => {
-    console.error('❌ WebSocketエラー:', err);
-    // エラーの詳細情報を表示
-    try {
-      console.error('Error details:', JSON.stringify({
-        type: err.type,
-        message: (err as ErrorEvent).message || '(no message)',
-        target: err.target && {
-          url: (err.target as WebSocket).url,
-          readyState: (err.target as WebSocket).readyState,
-        }
-      }));
-    } catch (e) {
-      console.error('Error details could not be stringified:', err);
-    }
-  });
+  const socket = new WebSocket(`wss://5minutes-call.koo710128.workers.dev/room/${passcode}`);
 
   const listeners: ((msg: any) => void)[] = [];
   console.log('WebSocket状態:', socket.readyState);

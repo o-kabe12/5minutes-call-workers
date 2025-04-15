@@ -1,8 +1,14 @@
 name = "5minutes-call"
-main = "workers/signaling.js"
-compatibility_date = "2023-12-01"
-
+main = "src/signaling.js"
+compatibility_date = "2024-04-15"
 workers_dev = true
+
+[[durable_objects.bindings]]
+name = "ROOM_SIGNALING"
+class_name = "RoomSignaling"
+
+[build]
+upload.format = "modules"
 
 [durable_objects]
 bindings = [
@@ -12,8 +18,3 @@ bindings = [
 [[migrations]]
 tag = "v1"
 new_classes = ["RoomSignaling"]
-
-[env.production.durable_objects]
-bindings = [
-  { name = "ROOM_SIGNALING", class_name = "RoomSignaling" }
-]
