@@ -148,6 +148,3 @@ export default {
     }
   }
 };
-
-// Durable Object を export（忘れずに）
-export { RoomSignaling };
