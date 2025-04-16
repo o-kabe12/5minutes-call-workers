@@ -1,6 +1,4 @@
-/**
- * 5分通話アプリ用シグナリングサーバー (Cloudflare Workers)
- */
+// signaling.js
 
 export class RoomSignaling {
   constructor(state, env) {
@@ -12,40 +10,43 @@ export class RoomSignaling {
 
   async fetch(request) {
     const upgradeHeader = request.headers.get('Upgrade');
-    if (!upgradeHeader || upgradeHeader !== 'websocket') {
+    if (upgradeHeader !== 'websocket') {
       return new Response('Expected WebSocket', { status: 400 });
     }
 
-    const websocket = request.headers.get('X-Custom-WebSocket');
-    if (!websocket) {
-      return new Response('Missing WebSocket', { status: 400 });
-    }
+    // WebSocketハンドシェイク処理
+    const pair = new WebSocketPair();
+    const [client, server] = Object.values(pair);
+
+    // WebSocketを確実に有効化
+    server.accept();
 
     const url = new URL(request.url);
-    const pathParts = url.pathname.split('/');
-    const roomId = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
+    const match = url.pathname.match(/\/room\/(\d{6})/);
+    const roomId = match?.[1] || 'unknown';
 
-    this.handleSession(websocket, roomId);
-    return new Response(null, { status: 101, webSocket: websocket });
+    this.handleSession(server, roomId);
+
+    return new Response(null, { status: 101, webSocket: client });
   }
 
-  handleSession(websocket, roomId) {
-    this.sessions.set(websocket, { roomId });
+  handleSession(socket, roomId) {
+    this.sessions.set(socket, { roomId });
 
-    websocket.addEventListener('close', () => {
-      this.sessions.delete(websocket);
+    socket.addEventListener('close', () => {
+      this.sessions.delete(socket);
       this.broadcastParticipants(roomId);
     });
 
-    websocket.addEventListener('message', async (msg) => {
+    socket.addEventListener('message', (msg) => {
       try {
         const data = JSON.parse(msg.data);
         if (!data.type || !data.roomId) {
-          websocket.send(JSON.stringify({ error: 'Invalid message format' }));
+          socket.send(JSON.stringify({ error: 'Invalid message format' }));
           return;
         }
 
-        this.broadcast(data.roomId, msg.data, websocket);
+        this.broadcast(data.roomId, msg.data, socket);
 
         this.messageQueue.push({
           roomId: data.roomId,
@@ -56,13 +57,13 @@ export class RoomSignaling {
         this.cleanMessageQueue();
       } catch (err) {
         console.error('Error processing message:', err);
-        websocket.send(JSON.stringify({ error: 'Failed to process message' }));
+        socket.send(JSON.stringify({ error: 'Failed to process message' }));
       }
     });
 
+    socket.send(JSON.stringify({ type: 'connected', roomId }));
+    this.sendQueuedMessages(socket, roomId);
     this.broadcastParticipants(roomId);
-    websocket.send(JSON.stringify({ type: 'connected', roomId }));
-    this.sendQueuedMessages(websocket, roomId);
   }
 
   broadcast(roomId, message, exclude = null) {
@@ -75,10 +76,8 @@ export class RoomSignaling {
 
   broadcastParticipants(roomId) {
     let count = 0;
-    for (const [_, data] of this.sessions.entries()) {
-      if (data.roomId === roomId) {
-        count++;
-      }
+    for (const data of this.sessions.values()) {
+      if (data.roomId === roomId) count++;
     }
 
     this.broadcast(roomId, JSON.stringify({
@@ -88,63 +87,43 @@ export class RoomSignaling {
     }));
   }
 
-  sendQueuedMessages(websocket, roomId) {
+  sendQueuedMessages(socket, roomId) {
     for (const item of this.messageQueue) {
       if (item.roomId === roomId) {
-        websocket.send(item.message);
+        socket.send(item.message);
       }
     }
   }
 
   cleanMessageQueue() {
     const currentTime = Date.now();
-    const expireTime = 5 * 60 * 1000;
+    const expireTime = 5 * 60 * 1000; // 5分
     this.messageQueue = this.messageQueue.filter(
-      item => (currentTime - item.timestamp) < expireTime
+      item => currentTime - item.timestamp < expireTime
     );
   }
 }
 
-// Worker本体のfetchハンドラ
+// Worker本体
 export default {
   async fetch(request, env, ctx) {
-    try {
-      const url = new URL(request.url);
+    const url = new URL(request.url);
 
-      if (request.headers.get('Upgrade') === 'websocket') {
-        const pathParts = url.pathname.split('/');
-        const roomId = pathParts[pathParts.length - 2] || pathParts[pathParts.length - 1];
+    if (request.headers.get('Upgrade') === 'websocket') {
+      const match = url.pathname.match(/\/room\/(\d{6})/);
+      const roomId = match?.[1];
 
-        if (!roomId || !/^\d{6}$/.test(roomId)) {
-          return new Response('Invalid room ID. It must be a 6-digit number.', { status: 400 });
-        }
-
-        const pair = new WebSocketPair();
-        const [client, server] = Object.values(pair);
-
-        const id = env.ROOM_SIGNALING.idFromName(roomId);
-        const room = await env.ROOM_SIGNALING.get(id);
-
-        await room.fetch(request.url, {
-          headers: {
-            'Upgrade': 'websocket',
-            'X-Custom-WebSocket': server
-          }
-        });
-
-        return new Response(null, {
-          status: 101,
-          webSocket: client
-        });
+      if (!roomId) {
+        return new Response('Invalid room ID. It must be a 6-digit number.', { status: 400 });
       }
 
-      return new Response('This is a WebSocket server for 5minutes-call signaling', {
-        headers: { 'Content-Type': 'text/plain' }
-      });
-
-    } catch (err) {
-      console.error('Error handling request:', err);
-      return new Response('Internal Server Error', { status: 500 });
+      const id = env.ROOM_SIGNALING.idFromName(roomId);
+      const obj = await env.ROOM_SIGNALING.get(id);
+      return await obj.fetch(request);
     }
+
+    return new Response('This is a WebSocket signaling server.', {
+      headers: { 'Content-Type': 'text/plain' }
+    });
   }
 };
