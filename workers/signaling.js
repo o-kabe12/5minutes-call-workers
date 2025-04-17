@@ -40,18 +40,24 @@ export class RoomSignaling {
 
     socket.addEventListener('message', (msg) => {
       console.log('[📩 message received]', msg.data);
-
+    
       try {
         const data = JSON.parse(msg.data);
-
+        
         if (!data.type || !data.roomId) {
           console.log('⚠️ Invalid message format');
           socket.send(JSON.stringify({ error: 'Invalid message format' }));
           return;
         }
-
+    
+        // 特にsignalタイプのメッセージのデータ構造を確認
+        if (data.type === 'signal') {
+          console.log('📡 Signal message received:', data.data ? 'contains data' : 'no data');
+        }
+    
         console.log(`📡 Broadcasting type "${data.type}" to room ${data.roomId}`);
-
+        
+        // メッセージをそのまま転送
         this.broadcast(data.roomId, msg.data, socket);
 
         this.messageQueue.push({
